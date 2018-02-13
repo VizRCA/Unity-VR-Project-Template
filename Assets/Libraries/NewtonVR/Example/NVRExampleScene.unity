@@ -3476,6 +3476,14 @@ Prefab:
       propertyPath: m_Name
       value: FlowerGun
       objectReference: {fileID: 0}
+    - target: {fileID: 422528, guid: 63dd2b524aab6e94cb6614f5f049cca4, type: 2}
+      propertyPath: m_LocalPosition.x
+      value: 0.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 422528, guid: 63dd2b524aab6e94cb6614f5f049cca4, type: 2}
+      propertyPath: m_LocalPosition.z
+      value: 0.072
+      objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_ParentPrefab: {fileID: 100100000, guid: 63dd2b524aab6e94cb6614f5f049cca4, type: 2}
   m_IsPrefabParent: 0
@@ -7676,7 +7684,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 925965905}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94a64afb3c4526f4d8238cf7d2c9778b, type: 3}
+  m_Script: {fileID: 11500000, guid: 8c3b2c29a655d28429eea6141009bc71, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
 --- !u!54 &925965908
@@ -9455,6 +9463,10 @@ Prefab:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
+    - target: {fileID: 11457864, guid: b0047dd65ff208349bf3a5aaaeae24d0, type: 2}
+      propertyPath: OnInitialized.m_PersistentCalls.m_Calls.Array.size
+      value: 0
+      objectReference: {fileID: 0}
     - target: {fileID: 478642, guid: b0047dd65ff208349bf3a5aaaeae24d0, type: 2}
       propertyPath: m_LocalPosition.x
       value: 0
@@ -9490,6 +9502,14 @@ Prefab:
     - target: {fileID: 11457864, guid: b0047dd65ff208349bf3a5aaaeae24d0, type: 2}
       propertyPath: SteamVREnabled
       value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 11457864, guid: b0047dd65ff208349bf3a5aaaeae24d0, type: 2}
+      propertyPath: OnInitialized.m_PersistentCalls.m_Calls.Array.data[0].m_Mode
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11457864, guid: b0047dd65ff208349bf3a5aaaeae24d0, type: 2}
+      propertyPath: OnInitialized.m_PersistentCalls.m_Calls.Array.data[0].m_CallState
+      value: 2
       objectReference: {fileID: 0}
     m_RemovedComponents:
     - {fileID: 0}
@@ -14000,7 +14020,7 @@ GameObject:
   - component: {fileID: 2126804365}
   - component: {fileID: 2126804363}
   - component: {fileID: 2126804364}
-  - component: {fileID: 2126804369}
+  - component: {fileID: 2126804370}
   m_Layer: 0
   m_Name: Movable
   m_TagString: Untagged
@@ -14106,7 +14126,7 @@ Transform:
   m_Father: {fileID: 949422243}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &2126804369
+--- !u!114 &2126804370
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_PrefabParentObject: {fileID: 0}
@@ -14114,9 +14134,11 @@ MonoBehaviour:
   m_GameObject: {fileID: 2126804362}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 94a64afb3c4526f4d8238cf7d2c9778b, type: 3}
+  m_Script: {fileID: 11500000, guid: 51d3ae77c53ab674290f0d740876a3e5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  Button: {fileID: 2126804363}
+  ToCopy: {fileID: 130380, guid: 57465a6be5d8c264ba5885ae82dee2b7, type: 2}
 --- !u!54 &2137979649 stripped
 Rigidbody:
   m_PrefabParentObject: {fileID: 5401146, guid: 6b76f440f47bdca44af31c1ff1a52d0c,
