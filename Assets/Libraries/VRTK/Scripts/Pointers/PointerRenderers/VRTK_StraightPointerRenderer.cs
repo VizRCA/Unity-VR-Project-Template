@@ -12,6 +12,7 @@ namespace VRTK
     /// <example>
     /// `VRTK/Examples/003_Controller_SimplePointer` shows the simple pointer in action and code examples of how the events are utilised and listened to can be viewed in the script `VRTK/Examples/Resources/Scripts/VRTK_ControllerPointerEvents_ListenerExample.cs`
     /// </example>
+    [AddComponentMenu("VRTK/Scripts/Pointers/Pointer Renderers/VRTK_StraightPointerRenderer")]
     public class VRTK_StraightPointerRenderer : VRTK_BasePointerRenderer
     {
         [Header("Straight Pointer Appearance Settings")]
@@ -26,6 +27,8 @@ namespace VRTK
         public bool cursorMatchTargetRotation = false;
         [Tooltip("Rescale the cursor proportionally to the distance from the tracer origin.")]
         public bool cursorDistanceRescale = false;
+        [Tooltip("The maximum scale the cursor is allowed to reach. This is only used when rescaling the cursor proportionally to the distance from the tracer origin.")]
+        public Vector3 maximumCursorScale = new Vector3(float.PositiveInfinity, float.PositiveInfinity, float.PositiveInfinity);
 
         [Header("Straight Pointer Custom Appearance Settings")]
 
@@ -45,13 +48,22 @@ namespace VRTK
         /// </summary>
         public override void UpdateRenderer()
         {
-            if ((controllingPointer && controllingPointer.IsPointerActive()) || IsVisible())
+            if ((controllingPointer != null && controllingPointer.IsPointerActive()) || IsVisible())
             {
                 float tracerLength = CastRayForward();
                 SetPointerAppearance(tracerLength);
                 MakeRenderersVisible();
             }
             base.UpdateRenderer();
+        }
+
+        /// <summary>
+        /// The GetPointerObjects returns an array of the auto generated GameObjects associated with the pointer.
+        /// </summary>
+        /// <returns>An array of pointer auto generated GameObjects.</returns>
+        public override GameObject[] GetPointerObjects()
+        {
+            return new GameObject[] { actualContainer, actualCursor, actualTracer };
         }
 
         protected override void ToggleRenderer(bool pointerState, bool actualState)
@@ -62,16 +74,20 @@ namespace VRTK
 
         protected override void CreatePointerObjects()
         {
-            actualContainer = new GameObject(string.Format("[{0}]StraightPointerRenderer_Container", gameObject.name));
+            actualContainer = new GameObject(VRTK_SharedMethods.GenerateVRTKObjectName(true, gameObject.name, "StraightPointerRenderer_Container"));
+            actualContainer.transform.SetParent(pointerOriginTransformFollowGameObject.transform);
             actualContainer.transform.localPosition = Vector3.zero;
+            actualContainer.transform.localRotation = Quaternion.identity;
+            actualContainer.transform.localScale = Vector3.one;
             VRTK_PlayerObject.SetPlayerObject(actualContainer, VRTK_PlayerObject.ObjectTypes.Pointer);
 
             CreateTracer();
             CreateCursor();
             Toggle(false, false);
-            if (controllingPointer)
+            if (controllingPointer != null)
             {
                 controllingPointer.ResetActivationTimer(true);
+                controllingPointer.ResetSelectionTimer(true);
             }
         }
 
@@ -94,7 +110,7 @@ namespace VRTK
         {
             base.UpdateObjectInteractor();
             //if the object interactor is too far from the pointer tip then set it to the pointer tip position to prevent glitching.
-            if (objectInteractor && actualCursor && Vector3.Distance(objectInteractor.transform.position, actualCursor.transform.position) > 0f)
+            if (objectInteractor != null && actualCursor != null && Vector3.Distance(objectInteractor.transform.position, actualCursor.transform.position) > 0f)
             {
                 objectInteractor.transform.position = actualCursor.transform.position;
             }
@@ -102,7 +118,7 @@ namespace VRTK
 
         protected virtual void CreateTracer()
         {
-            if (customTracer)
+            if (customTracer != null)
             {
                 actualTracer = Instantiate(customTracer);
             }
@@ -116,7 +132,7 @@ namespace VRTK
                 SetupMaterialRenderer(actualTracer);
             }
 
-            actualTracer.transform.name = string.Format("[{0}]StraightPointerRenderer_Tracer", gameObject.name);
+            actualTracer.transform.name = VRTK_SharedMethods.GenerateVRTKObjectName(true, gameObject.name, "StraightPointerRenderer_Tracer");
             actualTracer.transform.SetParent(actualContainer.transform);
 
             VRTK_PlayerObject.SetPlayerObject(actualTracer, VRTK_PlayerObject.ObjectTypes.Pointer);
@@ -124,7 +140,7 @@ namespace VRTK
 
         protected virtual void CreateCursor()
         {
-            if (customCursor)
+            if (customCursor != null)
             {
                 actualCursor = Instantiate(customCursor);
             }
@@ -140,14 +156,14 @@ namespace VRTK
             }
 
             cursorOriginalScale = actualCursor.transform.localScale;
-            actualCursor.transform.name = string.Format("[{0}]StraightPointerRenderer_Cursor", gameObject.name);
+            actualCursor.transform.name = VRTK_SharedMethods.GenerateVRTKObjectName(true, gameObject.name, "StraightPointerRenderer_Cursor");
             actualCursor.transform.SetParent(actualContainer.transform);
             VRTK_PlayerObject.SetPlayerObject(actualCursor, VRTK_PlayerObject.ObjectTypes.Pointer);
         }
 
         protected virtual void CheckRayMiss(bool rayHit, RaycastHit pointerCollidedWith)
         {
-            if (!rayHit || (destinationHit.collider && destinationHit.collider != pointerCollidedWith.collider))
+            if (!rayHit || (destinationHit.collider != null && destinationHit.collider != pointerCollidedWith.collider))
             {
                 if (destinationHit.collider != null)
                 {
@@ -175,7 +191,9 @@ namespace VRTK
             Transform origin = GetOrigin();
             Ray pointerRaycast = new Ray(origin.position, origin.forward);
             RaycastHit pointerCollidedWith;
-            var rayHit = Physics.Raycast(pointerRaycast, out pointerCollidedWith, maximumLength, ~layersToIgnore);
+#pragma warning disable 0618
+            bool rayHit = VRTK_CustomRaycast.Raycast(customRaycast, pointerRaycast, out pointerCollidedWith, layersToIgnore, maximumLength);
+#pragma warning restore 0618
 
             CheckRayMiss(rayHit, pointerCollidedWith);
             CheckRayHit(rayHit, pointerCollidedWith);
@@ -191,10 +209,10 @@ namespace VRTK
 
         protected virtual void SetPointerAppearance(float tracerLength)
         {
-            if (actualContainer)
+            if (actualContainer != null)
             {
                 //if the additional decimal isn't added then the beam position glitches
-                var beamPosition = tracerLength / (2f + BEAM_ADJUST_OFFSET);
+                float beamPosition = tracerLength / (2f + BEAM_ADJUST_OFFSET);
 
                 actualTracer.transform.localScale = new Vector3(scaleFactor, scaleFactor, tracerLength);
                 actualTracer.transform.localPosition = Vector3.forward * beamPosition;
@@ -202,12 +220,11 @@ namespace VRTK
                 actualCursor.transform.localPosition = new Vector3(0f, 0f, tracerLength);
 
                 Transform origin = GetOrigin();
-                actualContainer.transform.position = origin.position;
-                actualContainer.transform.rotation = origin.rotation;
 
-                ScaleObjectInteractor(actualCursor.transform.localScale * 1.05f);
+                float objectInteractorScaleIncrease = 1.05f;
+                ScaleObjectInteractor(actualCursor.transform.lossyScale * objectInteractorScaleIncrease);
 
-                if (destinationHit.transform)
+                if (destinationHit.transform != null)
                 {
                     if (cursorMatchTargetRotation)
                     {
@@ -216,7 +233,7 @@ namespace VRTK
                     if (cursorDistanceRescale)
                     {
                         float collisionDistance = Vector3.Distance(destinationHit.point, origin.position);
-                        actualCursor.transform.localScale = cursorOriginalScale * collisionDistance;
+                        actualCursor.transform.localScale = Vector3.Min(cursorOriginalScale * collisionDistance, maximumCursorScale);
                     }
                 }
                 else
@@ -227,7 +244,7 @@ namespace VRTK
                     }
                     if (cursorDistanceRescale)
                     {
-                        actualCursor.transform.localScale = cursorOriginalScale * tracerLength;
+                        actualCursor.transform.localScale = Vector3.Min(cursorOriginalScale * tracerLength, maximumCursorScale);
                     }
                 }
 
