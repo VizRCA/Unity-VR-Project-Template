@@ -173,6 +173,7 @@ namespace UnityHelpers.Tests
             Assert.IsTrue(newColor.a > original.a - 0.01 && newColor.a < original.a + 0.01);
         }
 
+        /*
         [Test]
         [ExpectedException(typeof(ArgumentException), ExpectedMessage = "Cannot randomly pick an item from the list, the list is null!")]
         public void ThrowsExceptionIfTryingToRandomlyPickFromANullEnumarable()
@@ -189,6 +190,7 @@ namespace UnityHelpers.Tests
             colors.RandomOne();
         }
 
+        */
         [Test]
         public void ReturnsTheFirstElementWhenRandomlyPickingFromAListWithOneElment()
         {
